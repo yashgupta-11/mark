@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container" id="appContainer">
+        <!-- Drag area for window movement -->
+        <div class="drag-area"></div>
+        
+        <!-- Settings Icon -->
+        <div class="settings-icon" id="settingsIcon" onclick="toggleSettings()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+        </div>
+
+        <!-- Settings Panel -->
+        <div class="settings-panel" id="settingsPanel" style="display: none;">
+            <div class="settings-header">
+                <span>Settings</span>
+                <button class="close-settings" onclick="toggleSettings()">×</button>
+            </div>
+            <div class="settings-content">
+                <div class="setting-item">
+                    <label for="transparencySlider">Transparency</label>
+                    <input type="range" id="transparencySlider" min="0" max="100" value="85" onchange="updateTransparency(this.value)">
+                    <span id="transparencyValue">85%</span>
+                </div>
+                <div class="setting-item">
+                    <label for="windowHeightSlider">Window Height: <span id="windowHeightValue">500</span>px</label>
+                    <input type="range" id="windowHeightSlider" min="400" max="1000" value="500" oninput="updateWindowHeightValue(this.value)" onchange="applyWindowHeightSetting(this.value)">
+                </div>
+                <div class="setting-item">
+                    <label for="windowWidthSlider">Window Width: <span id="windowWidthValue">350</span>px</label>
+                    <input type="range" id="windowWidthSlider" min="300" max="500" value="350" oninput="updateWindowWidthValue(this.value)" onchange="applyWindowWidthSetting(this.value)">
+                </div>
+                <div class="setting-item">
+                    <label for="iconBadgeEnabled">
+                        <input type="checkbox" id="iconBadgeEnabled" onchange="toggleIconBadge()">
+                        Show task count in menu bar icon
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label for="iconBadgeContent">Badge Shows:</label>
+                    <select id="iconBadgeContent" onchange="changeIconBadgeContent(this.value)">
+                        <option value="none">Nothing</option>
+                        <option value="tasks">Tasks Only</option>
+                        <option value="subtasks">Subtasks Only</option>
+                        <option value="both">Tasks + Subtasks</option>
+                        <option value="separate">Tasks | Subtasks (T:4|ST:5)</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label for="iconBadgeScope">Badge Scope:</label>
+                    <select id="iconBadgeScope" onchange="changeIconBadgeScope(this.value)">
+                        <option value="cumulative">All Workspaces</option>
+                        <option value="workspace">Current Workspace Only</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label for="dateFormat">Date Display Format:</label>
+                    <select id="dateFormat" onchange="changeDateFormat(this.value)">
+                        <option value="relative">Relative (Today, Tomorrow, Friday)</option>
+                        <option value="dmy">DD/MM/YYYY</option>
+                        <option value="mdy">MM/DD/YYYY</option>
+                        <option value="monthday">Month Day (May 3)</option>
+                    </select>
+                </div>
+                <div class="setting-item update-section">
+                    <label>Updates</label>
+                    <div class="update-controls">
+                        <div class="current-version" id="currentVersion">Version: Loading...</div>
+                        <button class="update-check-btn" id="updateCheckBtn" onclick="checkForUpdates()">Check for Updates</button>
+                        <div class="update-status" id="updateStatus"></div>
+                        <div class="update-actions" id="updateActions" style="display: none;">
+                            <button class="download-update-btn" id="downloadUpdateBtn" onclick="downloadUpdate()" style="display: none;">Download Update</button>
+                            <button class="install-update-btn" id="installUpdateBtn" onclick="installUpdate()" style="display: none;">Install & Restart</button>
+                        </div>
+                        <div class="update-progress" id="updateProgress" style="display: none;">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                            <div class="progress-text" id="progressText">0%</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <button class="quit-btn" onclick="quitApp()">Quit App</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workspaces -->
+        <div class="workspaces-container">
+            <div class="workspaces-scroll" id="workspacesScroll">
+                <!-- Workspace buttons will be dynamically added here -->
+            </div>
+            <button class="add-workspace-btn" id="addWorkspaceBtn" onclick="showAddWorkspaceInput()">+</button>
+        </div>
+
+        <div class="main-content">
+            <div class="add-todo-section">
+                <input type="text" id="mainTaskInput" placeholder="Add a new task..." class="main-input">
+            </div>
+            
+            <div class="section-title">Active Tasks</div>
+            <div class="todos-container" id="todosContainer">
+                <!-- Active todos will be dynamically added here -->
+            </div>
+            
+            <div class="finished-header" id="finishedHeader" style="display: none;">
+                <div class="section-title">Finished Tasks</div>
+                <button class="clear-finished" onclick="clearFinishedTasks()">Clear All</button>
+            </div>
+            <div class="finished-container" id="finishedContainer" style="display: none;">
+                <!-- Finished todos will be dynamically added here -->
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="task-count-container">
+                <span class="task-count" id="taskCount">0 tasks</span>
+            </div>
+            <button class="toggle-finished" id="toggleFinished" onclick="toggleFinishedSection()" style="display: none;">
+                Show Finished
+            </button>
+        </div>
+    </div>
+    
+    <script src="renderer.js"></script>
+</body>
+</html> 

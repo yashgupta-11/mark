@@ -1,0 +1,1153 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: transparent;
+    color: #333;
+    overflow: hidden;
+    -webkit-app-region: no-drag;
+}
+
+.app-container {
+    width: 350px; /* Default width, will be overridden by JavaScript */
+    height: 500px; /* Default height, will be overridden by JavaScript */
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.072);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.36);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    -webkit-app-region: no-drag;
+    position: relative;
+    /* Initial state for opening animation */
+    opacity: 0;
+    transform: scale(0.95);
+    transform-origin: center center;
+    /* transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out; /* SMOOTHER_AND_LONGER - REMOVED */
+}
+
+/* This class will be added/removed by JavaScript to control when transitions are active */
+.app-container-animating {
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+}
+
+.app-container.window-open {
+    /* Target state for opening animation */
+    opacity: 1;
+    transform: scale(1);
+}
+
+.app-container.window-closing {
+    /* Closing animation - scale down to center, fade out */
+    opacity: 0;
+    transform: scale(0.95);
+    transform-origin: center center;
+    transition: opacity 0.3s ease-in, transform 0.3s ease-in; /* Keep transition here for closing, or manage with JS too */
+}
+
+.header {
+    padding: 18px 22px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.054);
+    -webkit-app-region: no-drag;
+}
+
+.header h1 {
+    font-size: 16px;
+    font-weight: 500;
+    color: #e0e0e0;
+    letter-spacing: 0.3px;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #888;
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.045);
+    color: #bbb;
+}
+
+.main-content {
+    flex: 1;
+    padding-top: 15px;
+    padding-left: 22px;
+    padding-right: 22px;
+    padding-bottom: 0;
+    overflow-y: auto;
+    -webkit-app-region: no-drag;
+    background: transparent;
+}
+
+.add-todo-section {
+    background: rgba(40, 40, 40, 0.85);
+    padding: 10px;
+    margin-bottom:10px;
+    border-radius: 8px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.main-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.072);
+    border-radius: 10px;
+    font-size: 14px;
+    background: rgba(35, 35, 35, 0.63);
+    transition: all 0.2s ease;
+    outline: none;
+    color: #e0e0e0;
+}
+
+.main-input::placeholder {
+    color: #777;
+}
+
+.main-input:focus {
+    border-color: rgba(255, 255, 255, 0.135);
+    background: rgba(40, 40, 40, 0.72);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.027);
+}
+
+.add-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(60, 60, 60, 0.72);
+    color: #d0d0d0;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-btn:hover {
+    transform: scale(1.05);
+    background: rgba(70, 70, 70, 0.81);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.27);
+}
+
+.section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #999;
+    margin: 12px 0 10px 0;
+    padding-left: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.todos-container, .finished-container {
+    margin-bottom: 18px;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.todos-container.todos-switching,
+.finished-container.todos-switching {
+    opacity: 0;
+}
+
+.todo-item {
+    background: rgba(45, 45, 45, 0.765);
+    border: 1px solid rgba(255, 255, 255, 0.054);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: move;
+}
+
+.todo-item:hover {
+    background: rgba(55, 55, 55, 0.81);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.27);
+}
+
+.todo-item.completed {
+    background: rgba(35, 35, 35, 0.63);
+    border: 1px solid rgba(255, 255, 255, 0.027);
+}
+
+.todo-item.completed:hover {
+    background: rgba(40, 40, 40, 0.675);
+}
+
+/* Task completion animation - override all other transitions */
+.todo-item.completing {
+    transform: translateX(100%);
+    opacity: 0;
+    background: linear-gradient(45deg, rgba(46, 125, 50, 0.8), rgba(76, 175, 80, 0.6)) !important;
+    border-color: rgba(76, 175, 80, 0.4) !important;
+    transition: transform 0.7s ease-out, opacity 0.7s ease-out, background 0.2s ease-out, border-color 0.2s ease-out;
+}
+
+.main-task {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.main-task.completed {
+    opacity: 0.45;
+}
+
+.main-task.completed .task-text {
+    text-decoration: line-through;
+    color: #666;
+}
+
+.task-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.collapse-arrow {
+    font-size: 10px;
+    color: #666;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    user-select: none;
+    transform: rotate(0deg);
+}
+
+.collapse-arrow:hover {
+    color: #888;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.collapse-arrow.collapsed {
+    transform: rotate(-90deg);
+}
+
+.pending-subtasks-count {
+    font-size: 10px;
+    color: #888;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 2px 6px;
+    margin-right: 4px;
+    min-width: 16px;
+    text-align: center;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.checkbox {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #555;
+    border-radius: 4px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: rgba(50, 50, 50, 0.63);
+}
+
+.checkbox:hover {
+    border-color: #777;
+    background: rgba(60, 60, 60, 0.72);
+}
+
+.checkbox.checked {
+    background: rgba(90, 90, 90, 0.81);
+    border-color: #888;
+}
+
+/* Initial state for all checkbox tick marks (when not checked) */
+.checkbox::after,
+.subtask .checkbox::after {
+    content: '✓';
+    position: absolute;
+    top: -2px;
+    left: 1px;
+    color: #e0e0e0;
+    font-size: 11px;
+    font-weight: bold;
+    opacity: 0; /* Hidden by default */
+    transform: scale(0.5);
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+/* Ensure checking animation works for all checkboxes */
+.checkbox.checking::after,
+.subtask .checkbox.checking::after {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Make sure all checkboxes (including subtasks) show tick marks when checked */
+.checkbox.checked::after,
+.subtask .checkbox.checked::after {
+    opacity: 1 !important; /* Always visible when checked, override initial state */
+    transform: scale(1) !important;
+}
+
+.task-text {
+    flex: 1;
+    font-size: 14px;
+    color: #f0f0f0;
+    line-height: 1.4;
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: #555;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+
+.todo-item:hover .delete-btn,
+.task-controls:hover .delete-btn {
+    opacity: 1;
+}
+
+.delete-btn:hover {
+    background: rgba(200, 70, 70, 0.18);
+    color: #c84646;
+}
+
+.subtasks {
+    border-top: 1px solid rgba(255, 255, 255, 0.036);
+    background: rgba(15, 15, 15, 0.36);
+}
+
+.subtask {
+    padding: 10px 18px 10px 46px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.018);
+}
+
+.subtask:last-child {
+    border-bottom: none;
+}
+
+.subtask .checkbox {
+    width: 14px;
+    height: 14px;
+    border-width: 1.5px;
+}
+
+.subtask .task-text {
+    font-size: 13px;
+    color: #bbb;
+}
+
+.add-subtask {
+    padding: 10px 18px 10px 46px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.subtask-input {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.072);
+    border-radius: 6px;
+    font-size: 12px;
+    background: rgba(30, 30, 30, 0.63);
+    outline: none;
+    color: #ccc;
+    transition: all 0.2s ease;
+}
+
+.subtask-input::placeholder {
+    color: #666;
+}
+
+.subtask-input:focus {
+    border-color: rgba(255, 255, 255, 0.135);
+    background: rgba(35, 35, 35, 0.72);
+}
+
+.add-subtask-btn {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    background: rgba(50, 50, 50, 0.63);
+    color: #999;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.add-subtask-btn:hover {
+    background: rgba(60, 60, 60, 0.72);
+}
+
+.footer {
+    padding: 12px 22px 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.054);
+    background: rgba(30, 30, 30, 0.81);
+    text-align: center;
+    -webkit-app-region: no-drag;
+    margin-top: auto;
+    flex-shrink: 0;
+}
+
+.task-count-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.task-count {
+    font-size: 11px;
+    color: #aaa;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+}
+
+.detailed-task-count {
+    font-size: 10px;
+    color: #777;
+    font-weight: 400;
+    letter-spacing: 0.1px;
+}
+
+.toggle-finished {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-size: 11px;
+    margin-left: 10px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.toggle-finished:hover {
+    background: rgba(255, 255, 255, 0.045);
+    color: #bbb;
+}
+
+.finished-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 18px 0 10px 0;
+}
+
+.clear-finished {
+    background: none;
+    border: none;
+    color: #c84646;
+    cursor: pointer;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.clear-finished:hover {
+    background: rgba(200, 70, 70, 0.18);
+}
+
+/* Ensure no visual artifacts when sections toggle */
+.finished-container {
+    border: none;
+    outline: none;
+}
+
+.finished-header {
+    border: none;
+    outline: none;
+}
+
+/* Custom scrollbar */
+.main-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.main-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.main-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.135);
+    border-radius: 2px;
+}
+
+.main-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.225);
+}
+
+/* Only make specific safe areas draggable */
+.drag-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 50px;
+    height: 40px;
+    -webkit-app-region: drag;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Settings icon positioned in bottom right */
+.settings-icon {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #888;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    z-index: 220;
+    -webkit-app-region: no-drag;
+    pointer-events: auto;
+}
+
+.settings-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.settings-icon:hover {
+    background: rgba(255, 255, 255, 0.072);
+    color: #bbb;
+    transform: rotate(90deg);
+}
+
+/* Settings panel overlay */
+.settings-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 15, 15, 0.855);
+    backdrop-filter: blur(25px);
+    z-index: 200;
+    border-radius: 12px;
+    -webkit-app-region: no-drag;
+    overflow: hidden;
+}
+
+.settings-header {
+    padding: 22px 22px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.054);
+    font-size: 16px;
+    font-weight: 500;
+    color: #e0e0e0;
+}
+
+.close-settings {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #888;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.close-settings:hover {
+    background: rgba(255, 255, 255, 0.045);
+    color: #bbb;
+}
+
+.settings-content {
+    padding: 24px 22px;
+}
+
+.setting-item {
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.setting-item label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #ccc;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Transparency slider */
+.setting-item input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(60, 60, 60, 0.72);
+    outline: none;
+    cursor: pointer;
+}
+
+.setting-item input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(180, 180, 180, 0.81);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.setting-item input[type="range"]::-webkit-slider-thumb:hover {
+    background: #777;
+}
+
+#transparencyValue {
+    font-size: 12px;
+    color: #999;
+    text-align: center;
+    margin-top: 4px;
+}
+
+/* Quit button */
+.quit-btn {
+    padding: 12px 24px;
+    border: 1px solid rgba(200, 70, 70, 0.27);
+    border-radius: 8px;
+    background: rgba(200, 70, 70, 0.09);
+    color: #c84646;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    align-self: center;
+    min-width: 120px;
+}
+
+.quit-btn:hover {
+    background: rgba(200, 70, 70, 0.18);
+    border-color: rgba(200, 70, 70, 0.45);
+    transform: translateY(-1px);
+}
+
+/* Workspaces */
+.workspaces-container {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px 10px 16px;
+    background: rgba(30, 30, 30, 0.9);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    gap: 8px;
+    -webkit-app-region: no-drag;
+    position: relative;
+}
+
+.workspaces-scroll {
+    flex: 1;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 2px 0;
+}
+
+.workspaces-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.workspace-btn {
+    background: rgba(45, 45, 45, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: #ccc;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    min-width: fit-content;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    text-align: center;
+}
+
+.workspace-btn:hover {
+    background: rgba(55, 55, 55, 0.9);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #e0e0e0;
+}
+
+.workspace-btn.active {
+    background: rgba(70, 70, 70, 0.9);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.workspace-name {
+    display: inline-block; 
+}
+
+.workspace-rename-input {
+    padding: 2px 6px;
+    height: auto; 
+    font-size: 11px; 
+    box-sizing: border-box;
+    text-align: center;
+    background: rgba(35, 35, 35, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    color: #e0e0e0;
+    outline: none;
+}
+
+.add-workspace-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    background: rgba(45, 45, 45, 0.8);
+    color: #ccc;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.add-workspace-btn:hover {
+    background: rgba(55, 55, 55, 0.9);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #e0e0e0;
+    transform: scale(1.05);
+}
+
+.workspace-input {
+    background: rgba(35, 35, 35, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: #e0e0e0;
+    outline: none;
+    min-width: 80px;
+    max-width: 120px;
+}
+
+.workspace-input::placeholder {
+    color: #777;
+}
+
+/* Style for completed subtasks */
+.subtask.completed .task-text {
+    text-decoration: line-through;
+    color: #777; /* Dim color for completed subtask text */
+    opacity: 0.7;
+}
+
+.subtask.completed .checkbox.checked {
+    background: rgba(70, 70, 70, 0.7); /* Slightly different checked style for completed subtasks if needed */
+    border-color: #666;
+}
+
+.todo-item[draggable="true"]:hover {
+    cursor: move;
+}
+
+.drop-indicator {
+    height: 2px;
+    background: #4CAF50;
+    margin: 4px 0;
+    border-radius: 1px;
+    opacity: 0.8;
+}
+
+.setting-item input[type="checkbox"] {
+    margin-right: 8px;
+    transform: scale(1.1);
+}
+
+.setting-item select {
+    background: rgba(40, 40, 40, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    color: #e0e0e0;
+    padding: 4px 8px;
+    font-size: 12px;
+    outline: none;
+    margin-left: 8px;
+    min-width: 120px;
+}
+
+.setting-item select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.setting-item label[for="iconBadgeEnabled"] {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.setting-item label[for="iconBadgeIncludeSubtasks"],
+.setting-item label[for="detailedTaskCountCompact"] {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    text-transform: none;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.1px;
+}
+
+/* Animation classes */
+.completing {
+    animation: slideOutFade 0.7s ease-in-out;
+    transform-origin: top;
+}
+
+@keyframes slideOutFade {
+    0% {
+        opacity: 1;
+        transform: translateX(0) scaleY(1);
+        max-height: 100px;
+    }
+    30% {
+        opacity: 0.7;
+        transform: translateX(-20px) scaleY(0.95);
+    }
+    70% {
+        opacity: 0.3;
+        transform: translateX(-30px) scaleY(0.7);
+        max-height: 60px;
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-50px) scaleY(0);
+        max-height: 0;
+        margin: 0;
+        padding: 0;
+    }
+}
+
+/* Date picker styles */
+.date-picker-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.date-picker-modal {
+    background: rgba(25, 25, 25, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    width: 320px;
+    max-width: 90vw;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+}
+
+.date-picker-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #e0e0e0;
+    font-weight: 500;
+}
+
+.date-picker-close {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.date-picker-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
+}
+
+.date-picker-content {
+    padding: 16px;
+}
+
+.date-picker-month-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.date-picker-month-nav button {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #e0e0e0;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.date-picker-month-nav button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.date-picker-month-nav span {
+    color: #e0e0e0;
+    font-weight: 500;
+    font-size: 16px;
+}
+
+.date-picker-calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-bottom: 16px;
+}
+
+.calendar-day-header {
+    text-align: center;
+    padding: 8px 4px;
+    color: #999;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.calendar-day {
+    text-align: center;
+    padding: 8px 4px;
+    color: #e0e0e0;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-day:hover:not(.empty) {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.calendar-day.today {
+    background: rgba(255, 255, 255, 0.15);
+    color: #e0e0e0;
+    font-weight: 500;
+}
+
+.calendar-day.selected {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.calendar-day.empty {
+    cursor: default;
+}
+
+.date-picker-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.date-picker-actions button {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #e0e0e0;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    min-width: 80px;
+}
+
+.date-picker-actions button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Task date display */
+.task-date {
+    font-size: 11px;
+    color: #777;
+    margin-left: 8px;
+    padding: 2px 6px;
+    background: rgba(60, 60, 60, 0.5);
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+/* Update Section Styles */
+.update-section {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 24px;
+    margin-top: 8px;
+}
+
+.update-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.current-version {
+    font-size: 12px;
+    color: #999;
+    font-weight: 500;
+}
+
+.update-check-btn, .download-update-btn, .install-update-btn {
+    padding: 10px 16px;
+    border: 1px solid rgba(70, 130, 180, 0.3);
+    border-radius: 6px;
+    background: rgba(70, 130, 180, 0.1);
+    color: #5ba3d4;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.update-check-btn:hover, .download-update-btn:hover, .install-update-btn:hover {
+    background: rgba(70, 130, 180, 0.2);
+    border-color: rgba(70, 130, 180, 0.5);
+    transform: translateY(-1px);
+}
+
+.update-check-btn:disabled, .download-update-btn:disabled, .install-update-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.install-update-btn {
+    border-color: rgba(90, 180, 90, 0.3);
+    background: rgba(90, 180, 90, 0.1);
+    color: #6bc46b;
+}
+
+.install-update-btn:hover {
+    background: rgba(90, 180, 90, 0.2);
+    border-color: rgba(90, 180, 90, 0.5);
+}
+
+.update-status {
+    font-size: 12px;
+    color: #ccc;
+    text-align: center;
+    padding: 8px;
+    border-radius: 4px;
+    background: rgba(40, 40, 40, 0.6);
+    margin: 4px 0;
+}
+
+.update-status.checking {
+    color: #5ba3d4;
+    background: rgba(70, 130, 180, 0.1);
+}
+
+.update-status.available {
+    color: #6bc46b;
+    background: rgba(90, 180, 90, 0.1);
+}
+
+.update-status.not-available {
+    color: #999;
+    background: rgba(60, 60, 60, 0.3);
+}
+
+.update-status.error {
+    color: #c84646;
+    background: rgba(200, 70, 70, 0.1);
+}
+
+.update-progress {
+    margin-top: 12px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #5ba3d4, #6bc46b);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+} 
